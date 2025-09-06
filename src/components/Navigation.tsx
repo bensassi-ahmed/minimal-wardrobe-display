@@ -57,14 +57,6 @@ export default function Navigation({ onSearchChange }: NavigationProps) {
             >
               Contact
             </Link>
-            <Link
-              to="/admin"
-              className={`text-sm font-medium transition-colors hover:text-primary ${
-                isActive("/admin") ? "text-primary" : "text-muted-foreground"
-              }`}
-            >
-              Admin
-            </Link>
           </div>
 
           {/* Search and Mobile Menu */}
@@ -129,13 +121,6 @@ export default function Navigation({ onSearchChange }: NavigationProps) {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Contact
-              </Link>
-              <Link
-                to="/admin"
-                className="text-sm font-medium text-muted-foreground hover:text-primary"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Admin
               </Link>
             </div>
           </div>
