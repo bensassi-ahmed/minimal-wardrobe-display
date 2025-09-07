@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import ProductCard from "@/components/ProductCard";
+import ProductDetailDialog from "@/components/ProductDetailDialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +30,8 @@ export default function CataloguePage() {
   const [sortBy, setSortBy] = useState<string>("name");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [productDetailOpen, setProductDetailOpen] = useState(false);
   const { toast } = useToast();
 
   // Fetch products and categories
@@ -208,14 +211,20 @@ export default function CataloguePage() {
                 key={product.id}
                 product={product}
                 onView={(product) => {
-                  // In a real app, this would open a product detail modal or page
-                  console.log("View product:", product);
+                  setSelectedProduct(product);
+                  setProductDetailOpen(true);
                 }}
               />
             ))}
           </div>
         )}
       </div>
+
+      <ProductDetailDialog
+        product={selectedProduct}
+        open={productDetailOpen}
+        onOpenChange={setProductDetailOpen}
+      />
     </div>
   );
 }

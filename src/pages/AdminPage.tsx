@@ -38,6 +38,8 @@ const AdminPage = () => {
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -53,6 +55,12 @@ const AdminPage = () => {
     fabric: "",
     sizes: "",
     is_featured: false,
+  });
+
+  const [categoryFormData, setCategoryFormData] = useState({
+    name: "",
+    description: "",
+    slug: "",
   });
 
   useEffect(() => {
@@ -260,6 +268,103 @@ const AdminPage = () => {
     }
   };
 
+  const resetCategoryForm = () => {
+    setCategoryFormData({
+      name: "",
+      description: "",
+      slug: "",
+    });
+    setEditingCategory(null);
+  };
+
+  const handleCategoryEdit = (category: Category) => {
+    setCategoryFormData({
+      name: category.name,
+      description: (category as any).description || "",
+      slug: (category as any).slug || "",
+    });
+    setEditingCategory(category);
+    setIsCategoryDialogOpen(true);
+  };
+
+  const handleCategorySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const slug = categoryFormData.slug || categoryFormData.name.toLowerCase().replace(/\s+/g, '-');
+      
+      const categoryData = {
+        name: categoryFormData.name,
+        description: categoryFormData.description,
+        slug,
+      };
+
+      if (editingCategory) {
+        const { error } = await supabase
+          .from("categories")
+          .update(categoryData)
+          .eq("id", editingCategory.id);
+
+        if (error) throw error;
+
+        toast({
+          title: "Success",
+          description: "Category updated successfully",
+        });
+      } else {
+        const { error } = await supabase
+          .from("categories")
+          .insert([categoryData]);
+
+        if (error) throw error;
+
+        toast({
+          title: "Success",
+          description: "Category created successfully",
+        });
+      }
+
+      setIsCategoryDialogOpen(false);
+      resetCategoryForm();
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCategoryDelete = async (id: string) => {
+    if (confirm("Are you sure you want to delete this category? Products using this category will need to be updated.")) {
+      try {
+        const { error } = await supabase
+          .from("categories")
+          .delete()
+          .eq("id", id);
+
+        if (error) throw error;
+
+        toast({
+          title: "Success",
+          description: "Category deleted successfully",
+        });
+
+        fetchData();
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -274,7 +379,7 @@ const AdminPage = () => {
 
       <div className="max-w-7xl mx-auto p-6 space-y-8">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-elegant text-primary">Product Management</h1>
+          <h1 className="text-3xl font-elegant text-primary">Admin Dashboard</h1>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">Welcome, {user?.email}</span>
             <Button variant="outline" onClick={handleSignOut}>
@@ -447,6 +552,277 @@ const AdminPage = () => {
               </DialogContent>
             </Dialog>
           </div>
+        </div>
+
+        {/* Management Sections */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Product Management */}
+          <Card className="bg-card/50 backdrop-blur border-0 shadow-elegant">
+            <CardHeader>
+              <CardTitle className="flex justify-between items-center">
+                <span>Product Management</span>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => { resetForm(); setIsDialogOpen(true); }}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Product
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingProduct ? "Edit Product" : "Add New Product"}
+                      </DialogTitle>
+                    </DialogHeader>
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                      {/* ... keep existing product form code */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="name">Product Name *</Label>
+                          <Input
+                            id="name"
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="price">Price</Label>
+                          <Input
+                            id="price"
+                            type="number"
+                            step="0.01"
+                            value={formData.price}
+                            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="description">Description</Label>
+                        <Textarea
+                          id="description"
+                          value={formData.description}
+                          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                          rows={3}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="category">Category *</Label>
+                          <Select
+                            value={formData.category}
+                            onValueChange={(value) => setFormData({ ...formData, category: value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {categories.map((category) => (
+                                <SelectItem key={category.id} value={category.name}>
+                                  {category.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="color">Color</Label>
+                          <Input
+                            id="color"
+                            value={formData.color}
+                            onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="fabric">Fabric</Label>
+                          <Input
+                            id="fabric"
+                            value={formData.fabric}
+                            onChange={(e) => setFormData({ ...formData, fabric: e.target.value })}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="sizes">Available Sizes (comma-separated)</Label>
+                        <Input
+                          id="sizes"
+                          value={formData.sizes}
+                          onChange={(e) => setFormData({ ...formData, sizes: e.target.value })}
+                          placeholder="XS, S, M, L, XL"
+                        />
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          checked={formData.is_featured}
+                          onCheckedChange={(checked) => setFormData({ ...formData, is_featured: checked })}
+                        />
+                        <Label>Featured Product</Label>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="images">Product Images</Label>
+                        <div className="space-y-4">
+                          <Input
+                            ref={fileInputRef}
+                            id="images"
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handleFileChange}
+                            className="cursor-pointer"
+                          />
+                          
+                          {selectedImages.length > 0 && (
+                            <div className="space-y-2">
+                              <Label className="text-sm text-muted-foreground">Selected Images:</Label>
+                              <div className="grid grid-cols-2 gap-2">
+                                {selectedImages.map((file, index) => (
+                                  <div key={index} className="relative group">
+                                    <div className="flex items-center justify-between p-2 bg-muted rounded-md">
+                                      <span className="text-sm truncate">{file.name}</span>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => removeImage(index)}
+                                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {editingProduct?.image_urls && editingProduct.image_urls.length > 0 && (
+                            <div className="space-y-2">
+                              <Label className="text-sm text-muted-foreground">Existing Images:</Label>
+                              <div className="grid grid-cols-2 gap-2">
+                                {editingProduct.image_urls.map((url, index) => (
+                                  <div key={index} className="relative">
+                                    <img 
+                                      src={url} 
+                                      alt={`Product ${index + 1}`}
+                                      className="w-full h-20 object-cover rounded-md"
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <Button type="submit" className="w-full" disabled={loading || uploading}>
+                        {(loading || uploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {uploading ? "Uploading Images..." : editingProduct ? "Update Product" : "Add Product"}
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-primary mb-2">{products.length}</div>
+              <div className="text-sm text-muted-foreground">Total Products</div>
+            </CardContent>
+          </Card>
+
+          {/* Category Management */}
+          <Card className="bg-card/50 backdrop-blur border-0 shadow-elegant">
+            <CardHeader>
+              <CardTitle className="flex justify-between items-center">
+                <span>Category Management</span>
+                <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => { resetCategoryForm(); setIsCategoryDialogOpen(true); }}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Category
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingCategory ? "Edit Category" : "Add New Category"}
+                      </DialogTitle>
+                    </DialogHeader>
+
+                    <form onSubmit={handleCategorySubmit} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="categoryName">Category Name *</Label>
+                        <Input
+                          id="categoryName"
+                          value={categoryFormData.name}
+                          onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="categorySlug">Slug</Label>
+                        <Input
+                          id="categorySlug"
+                          value={categoryFormData.slug}
+                          onChange={(e) => setCategoryFormData({ ...categoryFormData, slug: e.target.value })}
+                          placeholder="Auto-generated from name if empty"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="categoryDescription">Description</Label>
+                        <Textarea
+                          id="categoryDescription"
+                          value={categoryFormData.description}
+                          onChange={(e) => setCategoryFormData({ ...categoryFormData, description: e.target.value })}
+                          rows={3}
+                        />
+                      </div>
+
+                      <Button type="submit" className="w-full" disabled={loading}>
+                        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {editingCategory ? "Update Category" : "Add Category"}
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="text-2xl font-bold text-primary mb-2">{categories.length}</div>
+              <div className="text-sm text-muted-foreground mb-4">Total Categories</div>
+              
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {categories.map((category) => (
+                  <div key={category.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-md">
+                    <span className="font-medium">{category.name}</span>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleCategoryEdit(category)}
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleCategoryDelete(category.id)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Statistics Cards */}
