@@ -22,17 +22,17 @@ export default function HomePage() {
         
         <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
           <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-            Timeless
+            Élégance
             <br />
-            <span className="text-accent">Elegance</span>
+            <span className="text-accent">Intemporelle</span>
           </h1>
           <p className="text-xl sm:text-2xl mb-8 max-w-2xl mx-auto font-light">
-            Discover our curated collection of minimalist fashion pieces, 
-            crafted for the modern individual who values quality and style.
+            Découvrez notre collection soigneusement sélectionnée de pièces de mode minimaliste, 
+            conçues pour l'individu moderne qui valorise la qualité et le style.
           </p>
           <Link to="/catalogue">
             <Button size="lg" className="text-lg px-8 py-6 bg-white text-primary hover:bg-white/90">
-              Explore Collection
+              Explorer la Collection
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
@@ -43,13 +43,13 @@ export default function HomePage() {
       <section className="py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="font-display text-4xl sm:text-5xl font-bold mb-8 text-foreground">
-            Our Philosophy
+            Notre Philosophie
           </h2>
           <p className="text-lg text-muted-foreground leading-relaxed mb-12 max-w-3xl mx-auto">
-            At Atelier, we believe that true style transcends trends. Our carefully curated pieces 
-            are designed to be cherished for years, combining exceptional craftsmanship with 
-            timeless aesthetics. Each garment tells a story of quality, sustainability, and 
-            uncompromising attention to detail.
+            Chez Atelier, nous croyons que le vrai style transcende les tendances. Nos pièces soigneusement 
+            sélectionnées sont conçues pour être chéries pendant des années, alliant un savoir-faire exceptionnel 
+            à une esthétique intemporelle. Chaque vêtement raconte une histoire de qualité, de durabilité 
+            et d'attention aux détails sans compromis.
           </p>
           
           <div className="grid md:grid-cols-3 gap-8 mt-16">
@@ -57,24 +57,24 @@ export default function HomePage() {
               <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">✨</span>
               </div>
-              <h3 className="font-display text-xl font-semibold mb-3">Quality Craftsmanship</h3>
-              <p className="text-muted-foreground">Every piece is meticulously crafted with attention to detail and premium materials.</p>
+              <h3 className="font-display text-xl font-semibold mb-3">Savoir-faire de Qualité</h3>
+              <p className="text-muted-foreground">Chaque pièce est méticuleusement conçue avec une attention aux détails et des matériaux premium.</p>
             </div>
             
             <div className="text-center">
               <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">🌱</span>
               </div>
-              <h3 className="font-display text-xl font-semibold mb-3">Sustainable Design</h3>
-              <p className="text-muted-foreground">We prioritize eco-friendly materials and ethical production practices.</p>
+              <h3 className="font-display text-xl font-semibold mb-3">Design Durable</h3>
+              <p className="text-muted-foreground">Nous privilégions les matériaux écologiques et les pratiques de production éthiques.</p>
             </div>
             
             <div className="text-center">
               <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">🎯</span>
               </div>
-              <h3 className="font-display text-xl font-semibold mb-3">Timeless Style</h3>
-              <p className="text-muted-foreground">Classic designs that remain relevant season after season.</p>
+              <h3 className="font-display text-xl font-semibold mb-3">Style Intemporel</h3>
+              <p className="text-muted-foreground">Des designs classiques qui restent pertinents saison après saison.</p>
             </div>
           </div>
         </div>
@@ -84,14 +84,14 @@ export default function HomePage() {
       <section className="py-24 bg-accent/50">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="font-display text-4xl font-bold mb-6 text-foreground">
-            Ready to discover your style?
+            Prêt à découvrir votre style ?
           </h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Browse our complete collection and find pieces that speak to your personal aesthetic.
+            Parcourez notre collection complète et trouvez des pièces qui parlent à votre esthétique personnelle.
           </p>
           <Link to="/catalogue">
             <Button size="lg" className="text-lg px-8 py-6">
-              View Catalogue
+              Voir le Catalogue
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>

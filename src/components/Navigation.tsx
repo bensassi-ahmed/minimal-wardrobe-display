@@ -39,7 +39,7 @@ export default function Navigation({ onSearchChange }: NavigationProps) {
                 isActive("/") ? "text-primary" : "text-muted-foreground"
               }`}
             >
-              Home
+              Accueil
             </Link>
             <Link
               to="/catalogue"
@@ -66,7 +66,7 @@ export default function Navigation({ onSearchChange }: NavigationProps) {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search products..."
+              placeholder="Rechercher des produits..."
                   value={searchQuery}
                   onChange={handleSearchChange}
                   className="pl-10 w-64"
@@ -94,7 +94,7 @@ export default function Navigation({ onSearchChange }: NavigationProps) {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="search"
-                    placeholder="Search products..."
+                    placeholder="Rechercher des produits..."
                     value={searchQuery}
                     onChange={handleSearchChange}
                     className="pl-10"
@@ -106,7 +106,7 @@ export default function Navigation({ onSearchChange }: NavigationProps) {
                 className="text-sm font-medium text-muted-foreground hover:text-primary"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Home
+                Accueil
               </Link>
               <Link
                 to="/catalogue"

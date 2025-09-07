@@ -32,8 +32,8 @@ export default function ContactPage() {
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     toast({
-      title: "Message Sent!",
-      description: "Thank you for your message. We'll get back to you soon.",
+      title: "Message Envoyé !",
+      description: "Merci pour votre message. Nous vous répondrons bientôt.",
     });
 
     setFormData({ name: "", email: "", subject: "", message: "" });
@@ -48,10 +48,10 @@ export default function ContactPage() {
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="font-display text-4xl sm:text-5xl font-bold mb-4 text-foreground">
-            Get In Touch
+            Contactez-nous
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Have questions about our collection? We'd love to hear from you.
+            Vous avez des questions sur notre collection ? Nous serions ravis de vous entendre.
           </p>
         </div>
 
@@ -80,7 +80,7 @@ export default function ContactPage() {
                       <Phone className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold mb-1">Phone</h3>
+                      <h3 className="font-semibold mb-1">Téléphone</h3>
                       <p className="text-muted-foreground">+1 (555) 123-4567</p>
                     </div>
                   </div>
@@ -111,10 +111,10 @@ export default function ContactPage() {
                       <Clock className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold mb-1">Hours</h3>
+                      <h3 className="font-semibold mb-1">Horaires</h3>
                       <p className="text-muted-foreground">
-                        Mon - Fri: 9:00 AM - 6:00 PM<br />
-                        Sat - Sun: 10:00 AM - 4:00 PM
+                        Lun - Ven : 9h00 - 18h00<br />
+                        Sam - Dim : 10h00 - 16h00
                       </p>
                     </div>
                   </div>
@@ -127,14 +127,14 @@ export default function ContactPage() {
           <div className="lg:col-span-2">
             <Card className="shadow-card">
               <CardHeader>
-                <CardTitle className="font-display text-2xl">Send us a message</CardTitle>
+                <CardTitle className="font-display text-2xl">Envoyez-nous un message</CardTitle>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="name" className="block text-sm font-medium mb-2">
-                        Name *
+                        Nom *
                       </label>
                       <Input
                         id="name"
@@ -142,7 +142,7 @@ export default function ContactPage() {
                         value={formData.name}
                         onChange={handleChange}
                         required
-                        placeholder="Your full name"
+                        placeholder="Votre nom complet"
                       />
                     </div>
                     <div>
@@ -156,14 +156,14 @@ export default function ContactPage() {
                         value={formData.email}
                         onChange={handleChange}
                         required
-                        placeholder="your.email@example.com"
+                        placeholder="votre.email@exemple.com"
                       />
                     </div>
                   </div>
 
                   <div>
                     <label htmlFor="subject" className="block text-sm font-medium mb-2">
-                      Subject *
+                      Sujet *
                     </label>
                     <Input
                       id="subject"
@@ -171,7 +171,7 @@ export default function ContactPage() {
                       value={formData.subject}
                       onChange={handleChange}
                       required
-                      placeholder="What can we help you with?"
+                      placeholder="Comment pouvons-nous vous aider ?"
                     />
                   </div>
 
@@ -186,7 +186,7 @@ export default function ContactPage() {
                       value={formData.message}
                       onChange={handleChange}
                       required
-                      placeholder="Tell us more about your inquiry..."
+                      placeholder="Parlez-nous de votre demande..."
                     />
                   </div>
 
@@ -196,7 +196,7 @@ export default function ContactPage() {
                     disabled={isSubmitting}
                     className="w-full sm:w-auto"
                   >
-                    {isSubmitting ? "Sending..." : "Send Message"}
+                    {isSubmitting ? "Envoi..." : "Envoyer le Message"}
                   </Button>
                 </form>
               </CardContent>

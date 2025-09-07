@@ -58,8 +58,8 @@ export default function CataloguePage() {
       } catch (error) {
         console.error('Error fetching data:', error);
         toast({
-          title: "Error",
-          description: "Failed to load products. Please try again.",
+          title: "Erreur",
+          description: "Échec du chargement des produits. Veuillez réessayer.",
           variant: "destructive",
         });
       } finally {
@@ -121,7 +121,7 @@ export default function CataloguePage() {
         <Navigation onSearchChange={setSearchQuery} />
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
-            <div className="text-muted-foreground">Loading products...</div>
+            <div className="text-muted-foreground">Chargement des produits...</div>
           </div>
         </div>
       </div>
@@ -136,10 +136,10 @@ export default function CataloguePage() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="font-display text-4xl sm:text-5xl font-bold mb-4 text-foreground">
-            Our Collection
+            Notre Collection
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Discover our carefully curated selection of timeless fashion pieces
+            Découvrez notre sélection soigneusement organisée de pièces de mode intemporelles
           </p>
         </div>
 
@@ -148,15 +148,15 @@ export default function CataloguePage() {
           <div className="flex flex-wrap gap-3 items-center">
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Filter:</span>
+              <span className="text-sm font-medium">Filtre :</span>
             </div>
             
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger className="w-32">
-                <SelectValue placeholder="Category" />
+                <SelectValue placeholder="Catégorie" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="all">Tout</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category} value={category}>
                     {category}
@@ -167,28 +167,28 @@ export default function CataloguePage() {
 
             <div className="flex items-center gap-2">
               <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Sort:</span>
+              <span className="text-sm font-medium">Trier :</span>
             </div>
 
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-32">
-                <SelectValue placeholder="Sort by" />
+                <SelectValue placeholder="Trier par" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="name">Name</SelectItem>
-                <SelectItem value="price">Price</SelectItem>
-                <SelectItem value="category">Category</SelectItem>
-                <SelectItem value="featured">Featured</SelectItem>
+                <SelectItem value="name">Nom</SelectItem>
+                <SelectItem value="price">Prix</SelectItem>
+                <SelectItem value="category">Catégorie</SelectItem>
+                <SelectItem value="featured">Vedette</SelectItem>
               </SelectContent>
             </Select>
 
             <Button variant="outline" size="sm" onClick={clearFilters}>
-              Clear Filters
+              Effacer les Filtres
             </Button>
           </div>
 
           <Badge variant="secondary" className="text-sm">
-            {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'}
+            {filteredProducts.length} {filteredProducts.length === 1 ? 'produit' : 'produits'}
           </Badge>
         </div>
 
@@ -196,11 +196,11 @@ export default function CataloguePage() {
         {filteredProducts.length === 0 ? (
           <div className="text-center py-16">
             <div className="text-muted-foreground mb-4">
-              {products.length === 0 ? "No products available." : "No products match your search criteria."}
+              {products.length === 0 ? "Aucun produit disponible." : "Aucun produit ne correspond à vos critères de recherche."}
             </div>
             {searchQuery && (
               <Button variant="outline" onClick={() => setSearchQuery("")}>
-                Clear Search
+                Effacer la Recherche
               </Button>
             )}
           </div>
