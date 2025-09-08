@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 import { Loader2, Plus, Edit, Trash2, Upload, X, LogOut } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import ProductCard from "@/components/ProductCard";
@@ -32,14 +33,30 @@ interface Category {
   name: string;
 }
 
+interface BlogPost {
+  id: string;
+  title: string;
+  content: string;
+  excerpt?: string;
+  author_name: string;
+  slug: string;
+  featured_image_url?: string;
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 const AdminPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [isBlogDialogOpen, setIsBlogDialogOpen] = useState(false);
+  const [editingBlogPost, setEditingBlogPost] = useState<BlogPost | null>(null);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -63,22 +80,35 @@ const AdminPage = () => {
     slug: "",
   });
 
+  const [blogFormData, setBlogFormData] = useState({
+    title: "",
+    content: "",
+    excerpt: "",
+    author_name: "Admin",
+    slug: "",
+    featured_image_url: "",
+    is_published: false,
+  });
+
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
     try {
-      const [productsResult, categoriesResult] = await Promise.all([
+      const [productsResult, categoriesResult, blogPostsResult] = await Promise.all([
         supabase.from("products").select("*").order("created_at", { ascending: false }),
         supabase.from("categories").select("*").order("name"),
+        supabase.from("blog_posts").select("*").order("created_at", { ascending: false }),
       ]);
 
       if (productsResult.error) throw productsResult.error;
       if (categoriesResult.error) throw categoriesResult.error;
+      if (blogPostsResult.error) throw blogPostsResult.error;
 
       setProducts(productsResult.data || []);
       setCategories(categoriesResult.data || []);
+      setBlogPosts(blogPostsResult.data || []);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -365,6 +395,119 @@ const AdminPage = () => {
     }
   };
 
+  // Blog Management Functions
+  const resetBlogForm = () => {
+    setBlogFormData({
+      title: "",
+      content: "",
+      excerpt: "",
+      author_name: "Admin",
+      slug: "",
+      featured_image_url: "",
+      is_published: false,
+    });
+    setEditingBlogPost(null);
+    setIsBlogDialogOpen(false);
+  };
+
+  const handleBlogEdit = (blogPost: BlogPost) => {
+    setBlogFormData({
+      title: blogPost.title,
+      content: blogPost.content,
+      excerpt: blogPost.excerpt || "",
+      author_name: blogPost.author_name,
+      slug: blogPost.slug,
+      featured_image_url: blogPost.featured_image_url || "",
+      is_published: blogPost.is_published,
+    });
+    setEditingBlogPost(blogPost);
+    setIsBlogDialogOpen(true);
+  };
+
+  const createBlogSlug = (title: string) => {
+    return title.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+  };
+
+  const handleBlogSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const slug = blogFormData.slug || createBlogSlug(blogFormData.title);
+      
+      const blogData = {
+        title: blogFormData.title,
+        content: blogFormData.content,
+        excerpt: blogFormData.excerpt || null,
+        author_name: blogFormData.author_name,
+        slug: slug,
+        featured_image_url: blogFormData.featured_image_url || null,
+        is_published: blogFormData.is_published,
+      };
+
+      let result;
+      if (editingBlogPost) {
+        result = await supabase
+          .from("blog_posts")
+          .update(blogData)
+          .eq("id", editingBlogPost.id)
+          .select();
+      } else {
+        result = await supabase
+          .from("blog_posts")
+          .insert([blogData])
+          .select();
+      }
+
+      if (result.error) throw result.error;
+
+      toast({
+        title: "Succès",
+        description: `Article ${editingBlogPost ? "mis à jour" : "créé"} avec succès`,
+      });
+
+      resetBlogForm();
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBlogDelete = async (id: string) => {
+    if (confirm("Êtes-vous sûr de vouloir supprimer cet article de blog ?")) {
+      try {
+        const { error } = await supabase
+          .from("blog_posts")
+          .delete()
+          .eq("id", id);
+
+        if (error) throw error;
+
+        toast({
+          title: "Succès",
+          description: "Article supprimé avec succès",
+        });
+
+        fetchData();
+      } catch (error: any) {
+        toast({
+          title: "Erreur",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -555,7 +698,7 @@ const AdminPage = () => {
         </div>
 
         {/* Management Sections */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Product Management */}
           <Card className="bg-card/50 backdrop-blur border-0 shadow-elegant">
             <CardHeader>
@@ -823,6 +966,149 @@ const AdminPage = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Blog Management */}
+          <Card className="bg-card/50 backdrop-blur border-0 shadow-elegant">
+            <CardHeader>
+              <CardTitle className="flex justify-between items-center">
+                <span>Gestion du Blog</span>
+                <Dialog open={isBlogDialogOpen} onOpenChange={setIsBlogDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => { resetBlogForm(); setIsBlogDialogOpen(true); }}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Ajouter Article
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingBlogPost ? "Modifier l'Article" : "Nouvel Article"}
+                      </DialogTitle>
+                    </DialogHeader>
+
+                    <form onSubmit={handleBlogSubmit} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="blogTitle">Titre *</Label>
+                        <Input
+                          id="blogTitle"
+                          value={blogFormData.title}
+                          onChange={(e) => setBlogFormData({ ...blogFormData, title: e.target.value })}
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="blogSlug">Slug URL</Label>
+                        <Input
+                          id="blogSlug"
+                          value={blogFormData.slug}
+                          onChange={(e) => setBlogFormData({ ...blogFormData, slug: e.target.value })}
+                          placeholder="Laissez vide pour génération automatique"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="blogExcerpt">Résumé</Label>
+                        <Textarea
+                          id="blogExcerpt"
+                          value={blogFormData.excerpt}
+                          onChange={(e) => setBlogFormData({ ...blogFormData, excerpt: e.target.value })}
+                          placeholder="Bref aperçu de l'article..."
+                          rows={2}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="blogContent">Contenu *</Label>
+                        <Textarea
+                          id="blogContent"
+                          value={blogFormData.content}
+                          onChange={(e) => setBlogFormData({ ...blogFormData, content: e.target.value })}
+                          placeholder="Contenu complet de l'article..."
+                          rows={10}
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="blogAuthor">Auteur</Label>
+                        <Input
+                          id="blogAuthor"
+                          value={blogFormData.author_name}
+                          onChange={(e) => setBlogFormData({ ...blogFormData, author_name: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="blogImage">URL de l'image à la une</Label>
+                        <Input
+                          id="blogImage"
+                          value={blogFormData.featured_image_url}
+                          onChange={(e) => setBlogFormData({ ...blogFormData, featured_image_url: e.target.value })}
+                          placeholder="https://exemple.com/image.jpg"
+                        />
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="blogPublished"
+                          checked={blogFormData.is_published}
+                          onCheckedChange={(checked) => setBlogFormData({ ...blogFormData, is_published: checked })}
+                        />
+                        <Label htmlFor="blogPublished">Publier l'article</Label>
+                      </div>
+
+                      <Button type="submit" className="w-full" disabled={loading}>
+                        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {editingBlogPost ? "Mettre à Jour" : "Créer l'Article"}
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-primary mb-2">{blogPosts.length}</div>
+              <div className="text-sm text-muted-foreground mb-4">
+                Total Articles • {blogPosts.filter(p => p.is_published).length} Publiés
+              </div>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {blogPosts.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Aucun article créé</p>
+                ) : (
+                  blogPosts.map((post) => (
+                    <div key={post.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-md">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium truncate">{post.title}</p>
+                          {post.is_published && <Badge variant="secondary" className="text-xs">Publié</Badge>}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Par {post.author_name} • {new Date(post.created_at).toLocaleDateString('fr-FR')}
+                        </p>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleBlogEdit(post)}
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleBlogDelete(post.id)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Statistics Cards */}
@@ -847,8 +1133,8 @@ const AdminPage = () => {
           </Card>
           <Card className="bg-card/50 backdrop-blur border-0 shadow-elegant">
             <CardContent className="p-6">
-              <div className="text-2xl font-bold text-primary">{products.filter(p => p.price && p.price > 0).length}</div>
-              <div className="text-sm text-muted-foreground">Priced Items</div>
+              <div className="text-2xl font-bold text-primary">{blogPosts.length}</div>
+              <div className="text-sm text-muted-foreground">Articles de Blog</div>
             </CardContent>
           </Card>
         </div>

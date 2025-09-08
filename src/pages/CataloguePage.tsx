@@ -29,7 +29,6 @@ export default function CataloguePage() {
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("name");
-  const [searchQuery, setSearchQuery] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -78,17 +77,6 @@ export default function CataloguePage() {
   useEffect(() => {
     let filtered = [...products];
 
-    // Apply search filter
-    if (searchQuery) {
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.color?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.fabric?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
     // Apply category filter
     if (selectedCategory !== "all") {
       filtered = filtered.filter(product => product.category === selectedCategory);
@@ -111,18 +99,17 @@ export default function CataloguePage() {
     });
 
     setFilteredProducts(filtered);
-  }, [products, searchQuery, selectedCategory, sortBy]);
+  }, [products, selectedCategory, sortBy]);
 
   const clearFilters = () => {
     setSelectedCategory("all");
     setSortBy("name");
-    setSearchQuery("");
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Navigation onSearchChange={setSearchQuery} />
+        <Navigation />
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
             <div className="text-muted-foreground">Chargement des produits...</div>
@@ -134,7 +121,7 @@ export default function CataloguePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation onSearchChange={setSearchQuery} />
+      <Navigation />
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
@@ -200,13 +187,8 @@ export default function CataloguePage() {
         {filteredProducts.length === 0 ? (
           <div className="text-center py-16">
             <div className="text-muted-foreground mb-4">
-              {products.length === 0 ? "Aucun produit disponible." : "Aucun produit ne correspond à vos critères de recherche."}
+              {products.length === 0 ? "Aucun produit disponible." : "Aucun produit ne correspond à vos critères de filtre."}
             </div>
-            {searchQuery && (
-              <Button variant="outline" onClick={() => setSearchQuery("")}>
-                Effacer la Recherche
-              </Button>
-            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

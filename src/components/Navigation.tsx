@@ -1,23 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
-import { Search, ShoppingBag, Menu, X } from "lucide-react";
+import { ShoppingBag, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useState } from "react";
 
-interface NavigationProps {
-  onSearchChange?: (query: string) => void;
-}
-
-export default function Navigation({ onSearchChange }: NavigationProps) {
+export default function Navigation() {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-    onSearchChange?.(query);
-  };
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -57,23 +45,18 @@ export default function Navigation({ onSearchChange }: NavigationProps) {
             >
               Contact
             </Link>
+            <Link
+              to="/participation"
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                isActive("/participation") ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              Participation
+            </Link>
           </div>
 
-          {/* Search and Mobile Menu */}
-          <div className="flex items-center space-x-4">
-            {location.pathname === "/catalogue" && (
-              <div className="relative hidden sm:block">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-              placeholder="Rechercher des produits..."
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  className="pl-10 w-64"
-                />
-              </div>
-            )}
-            
+          {/* Mobile Menu */}
+          <div className="flex items-center">
             <Button
               variant="ghost"
               size="icon"
@@ -89,18 +72,6 @@ export default function Navigation({ onSearchChange }: NavigationProps) {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t">
             <div className="flex flex-col space-y-4">
-              {location.pathname === "/catalogue" && (
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="search"
-                    placeholder="Rechercher des produits..."
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    className="pl-10"
-                  />
-                </div>
-              )}
               <Link
                 to="/"
                 className="text-sm font-medium text-muted-foreground hover:text-primary"
@@ -121,6 +92,13 @@ export default function Navigation({ onSearchChange }: NavigationProps) {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Contact
+              </Link>
+              <Link
+                to="/participation"
+                className="text-sm font-medium text-muted-foreground hover:text-primary"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Participation
               </Link>
             </div>
           </div>
