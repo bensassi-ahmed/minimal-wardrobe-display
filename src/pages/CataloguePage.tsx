@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import ProductCard from "@/components/ProductCard";
-import ProductDetailDialog from "@/components/ProductDetailDialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,7 @@ interface Product {
 }
 
 export default function CataloguePage() {
+  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -30,9 +31,12 @@ export default function CataloguePage() {
   const [sortBy, setSortBy] = useState<string>("name");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [loading, setLoading] = useState(true);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [productDetailOpen, setProductDetailOpen] = useState(false);
   const { toast } = useToast();
+
+  // Helper function to create URL-friendly slug from product name
+  const createProductSlug = (productName: string) => {
+    return productName.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\-]/g, '');
+  };
 
   // Fetch products and categories
   useEffect(() => {
@@ -211,20 +215,14 @@ export default function CataloguePage() {
                 key={product.id}
                 product={product}
                 onView={(product) => {
-                  setSelectedProduct(product);
-                  setProductDetailOpen(true);
+                  const slug = createProductSlug(product.name);
+                  navigate(`/catalogue/${slug}`);
                 }}
               />
             ))}
           </div>
         )}
       </div>
-
-      <ProductDetailDialog
-        product={selectedProduct}
-        open={productDetailOpen}
-        onOpenChange={setProductDetailOpen}
-      />
     </div>
   );
 }
