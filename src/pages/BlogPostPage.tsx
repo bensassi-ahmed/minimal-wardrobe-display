@@ -198,8 +198,8 @@ export default function BlogPostPage() {
           )}
 
           {/* Article Content */}
-          <main className="prose prose-lg max-w-none">
-            <div className="text-foreground">
+          <main className="max-w-none">
+            <div className="space-y-4 text-foreground leading-relaxed">
               {formatContent(post.content)}
             </div>
           </main>
