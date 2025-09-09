@@ -90,6 +90,9 @@ const AdminPage = () => {
     is_published: false,
   });
 
+  const [selectedBlogImage, setSelectedBlogImage] = useState<File | null>(null);
+  const blogFileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -407,7 +410,49 @@ const AdminPage = () => {
       is_published: false,
     });
     setEditingBlogPost(null);
+    setSelectedBlogImage(null);
+    if (blogFileInputRef.current) {
+      blogFileInputRef.current.value = '';
+    }
     setIsBlogDialogOpen(false);
+  };
+
+  const uploadBlogImage = async (): Promise<string | null> => {
+    if (!selectedBlogImage) return null;
+
+    setUploading(true);
+    try {
+      const fileExt = selectedBlogImage.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `blog/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('blog-images')
+        .upload(filePath, selectedBlogImage);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('blog-images')
+        .getPublicUrl(filePath);
+
+      return data.publicUrl;
+    } catch (error: any) {
+      toast({
+        title: "Erreur upload image",
+        description: error.message,
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleBlogFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedBlogImage(e.target.files[0]);
+    }
   };
 
   const handleBlogEdit = (blogPost: BlogPost) => {
@@ -438,13 +483,17 @@ const AdminPage = () => {
     try {
       const slug = blogFormData.slug || createBlogSlug(blogFormData.title);
       
+      // Upload new image if selected
+      const uploadedImageUrl = await uploadBlogImage();
+      const imageUrl = uploadedImageUrl || blogFormData.featured_image_url || null;
+      
       const blogData = {
         title: blogFormData.title,
         content: blogFormData.content,
         excerpt: blogFormData.excerpt || null,
         author_name: blogFormData.author_name,
         slug: slug,
-        featured_image_url: blogFormData.featured_image_url || null,
+        featured_image_url: imageUrl,
         is_published: blogFormData.is_published,
       };
 
@@ -1040,13 +1089,58 @@ const AdminPage = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="blogImage">URL de l'image à la une</Label>
-                        <Input
-                          id="blogImage"
-                          value={blogFormData.featured_image_url}
-                          onChange={(e) => setBlogFormData({ ...blogFormData, featured_image_url: e.target.value })}
-                          placeholder="https://exemple.com/image.jpg"
-                        />
+                        <Label htmlFor="blogImage">Image à la une</Label>
+                        <div className="space-y-4">
+                          <Input
+                            ref={blogFileInputRef}
+                            id="blogImage"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleBlogFileChange}
+                            className="cursor-pointer"
+                          />
+                          
+                          {selectedBlogImage && (
+                            <div className="space-y-2">
+                              <Label className="text-sm text-muted-foreground">Image sélectionnée:</Label>
+                              <div className="flex items-center justify-between p-2 bg-muted rounded-md">
+                                <span className="text-sm truncate">{selectedBlogImage.name}</span>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setSelectedBlogImage(null)}
+                                  className="h-6 w-6 p-0"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+
+                          {editingBlogPost?.featured_image_url && !selectedBlogImage && (
+                            <div className="space-y-2">
+                              <Label className="text-sm text-muted-foreground">Image actuelle:</Label>
+                              <div className="relative">
+                                <img 
+                                  src={editingBlogPost.featured_image_url} 
+                                  alt="Image actuelle"
+                                  className="w-full h-32 object-cover rounded-md"
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="space-y-2">
+                            <Label htmlFor="blogImageUrl">Ou URL de l'image</Label>
+                            <Input
+                              id="blogImageUrl"
+                              value={blogFormData.featured_image_url}
+                              onChange={(e) => setBlogFormData({ ...blogFormData, featured_image_url: e.target.value })}
+                              placeholder="https://exemple.com/image.jpg"
+                            />
+                          </div>
+                        </div>
                       </div>
 
                       <div className="flex items-center space-x-2">

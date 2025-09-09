@@ -117,9 +117,6 @@ export default function BlogPage() {
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                     <Calendar className="h-4 w-4" />
                     <span>{formatDate(post.created_at)}</span>
-                    <span>•</span>
-                    <User className="h-4 w-4" />
-                    <span>{post.author_name}</span>
                   </div>
                   
                   <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">
@@ -134,10 +131,12 @@ export default function BlogPage() {
                 </CardHeader>
                 
                 <CardContent>
-                  <Button variant="ghost" className="group/btn p-0 h-auto text-primary">
-                    Lire l'article
-                    <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
-                  </Button>
+                  <Link to={`/participation/${post.slug}`}>
+                    <Button variant="ghost" className="group/btn p-0 h-auto text-primary">
+                      Lire l'article
+                      <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
             ))}
