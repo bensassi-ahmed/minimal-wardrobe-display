@@ -15,7 +15,7 @@ interface BlogPost {
   excerpt?: string;
   author_name: string;
   slug: string;
-  featured_image_url?: string;
+  image_urls?: string[];
   is_published: boolean;
   created_at: string;
   updated_at: string;
@@ -103,10 +103,10 @@ export default function BlogPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {posts.map((post) => (
               <Card key={post.id} className="group hover:shadow-lg transition-shadow">
-                {post.featured_image_url && (
+                {post.image_urls && post.image_urls.length > 0 && (
                   <div className="aspect-video overflow-hidden rounded-t-lg">
                     <img
-                      src={post.featured_image_url}
+                      src={post.image_urls[0]}
                       alt={post.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />

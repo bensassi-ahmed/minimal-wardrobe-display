@@ -40,7 +40,7 @@ interface BlogPost {
   excerpt?: string;
   author_name: string;
   slug: string;
-  featured_image_url?: string;
+  image_urls?: string[];
   is_published: boolean;
   created_at: string;
   updated_at: string;
@@ -86,11 +86,11 @@ const AdminPage = () => {
     excerpt: "",
     author_name: "Admin",
     slug: "",
-    featured_image_url: "",
+    image_urls: [] as string[],
     is_published: false,
   });
 
-  const [selectedBlogImage, setSelectedBlogImage] = useState<File | null>(null);
+  const [selectedBlogImages, setSelectedBlogImages] = useState<File[]>([]);
   const blogFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -406,53 +406,78 @@ const AdminPage = () => {
       excerpt: "",
       author_name: "Admin",
       slug: "",
-      featured_image_url: "",
+      image_urls: [],
       is_published: false,
     });
     setEditingBlogPost(null);
-    setSelectedBlogImage(null);
+    setSelectedBlogImages([]);
     if (blogFileInputRef.current) {
       blogFileInputRef.current.value = '';
     }
     setIsBlogDialogOpen(false);
   };
 
-  const uploadBlogImage = async (): Promise<string | null> => {
-    if (!selectedBlogImage) return null;
+  const uploadBlogImages = async (): Promise<string[]> => {
+    if (selectedBlogImages.length === 0) return [];
 
     setUploading(true);
     try {
-      const fileExt = selectedBlogImage.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `blog/${fileName}`;
+      const uploadPromises = selectedBlogImages.map(async (image) => {
+        const fileExt = image.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `blog/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('blog-images')
-        .upload(filePath, selectedBlogImage);
+        const { error: uploadError } = await supabase.storage
+          .from('blog-images')
+          .upload(filePath, image);
 
-      if (uploadError) throw uploadError;
+        if (uploadError) throw uploadError;
 
-      const { data } = supabase.storage
-        .from('blog-images')
-        .getPublicUrl(filePath);
+        const { data } = supabase.storage
+          .from('blog-images')
+          .getPublicUrl(filePath);
 
-      return data.publicUrl;
+        return data.publicUrl;
+      });
+
+      return await Promise.all(uploadPromises);
     } catch (error: any) {
       toast({
-        title: "Erreur upload image",
+        title: "Erreur upload images",
         description: error.message,
         variant: "destructive",
       });
-      return null;
+      return [];
     } finally {
       setUploading(false);
     }
   };
 
   const handleBlogFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setSelectedBlogImage(e.target.files[0]);
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      setSelectedBlogImages(prev => [...prev, ...newFiles]);
     }
+  };
+
+  const removeBlogImage = (index: number) => {
+    setSelectedBlogImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const addImageUrl = (url: string) => {
+    if (url.trim()) {
+      setBlogFormData(prev => ({
+        ...prev,
+        image_urls: [...prev.image_urls, url.trim()]
+      }));
+    }
+  };
+
+  const removeImageUrl = (index: number) => {
+    setBlogFormData(prev => ({
+      ...prev,
+      image_urls: prev.image_urls.filter((_, i) => i !== index)
+    }));
   };
 
   const handleBlogEdit = (blogPost: BlogPost) => {
@@ -462,7 +487,7 @@ const AdminPage = () => {
       excerpt: blogPost.excerpt || "",
       author_name: blogPost.author_name,
       slug: blogPost.slug,
-      featured_image_url: blogPost.featured_image_url || "",
+      image_urls: blogPost.image_urls || [],
       is_published: blogPost.is_published,
     });
     setEditingBlogPost(blogPost);
@@ -483,9 +508,9 @@ const AdminPage = () => {
     try {
       const slug = blogFormData.slug || createBlogSlug(blogFormData.title);
       
-      // Upload new image if selected
-      const uploadedImageUrl = await uploadBlogImage();
-      const imageUrl = uploadedImageUrl || blogFormData.featured_image_url || null;
+      // Upload new images if selected
+      const uploadedImageUrls = await uploadBlogImages();
+      const imageUrls = [...blogFormData.image_urls, ...uploadedImageUrls];
       
       const blogData = {
         title: blogFormData.title,
@@ -493,7 +518,7 @@ const AdminPage = () => {
         excerpt: blogFormData.excerpt || null,
         author_name: blogFormData.author_name,
         slug: slug,
-        featured_image_url: imageUrl,
+        image_urls: imageUrls,
         is_published: blogFormData.is_published,
       };
 
@@ -1089,56 +1114,115 @@ const AdminPage = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="blogImage">Image à la une</Label>
+                        <Label htmlFor="blogImage">Images du Blog</Label>
                         <div className="space-y-4">
                           <Input
                             ref={blogFileInputRef}
                             id="blogImage"
                             type="file"
                             accept="image/*"
+                            multiple
                             onChange={handleBlogFileChange}
                             className="cursor-pointer"
                           />
                           
-                          {selectedBlogImage && (
+                          {selectedBlogImages.length > 0 && (
                             <div className="space-y-2">
-                              <Label className="text-sm text-muted-foreground">Image sélectionnée:</Label>
-                              <div className="flex items-center justify-between p-2 bg-muted rounded-md">
-                                <span className="text-sm truncate">{selectedBlogImage.name}</span>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => setSelectedBlogImage(null)}
-                                  className="h-6 w-6 p-0"
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
+                              <Label className="text-sm text-muted-foreground">Images sélectionnées:</Label>
+                              <div className="grid grid-cols-2 gap-2">
+                                {selectedBlogImages.map((file, index) => (
+                                  <div key={index} className="relative group">
+                                    <div className="flex items-center justify-between p-2 bg-muted rounded-md">
+                                      <span className="text-sm truncate">{file.name}</span>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => removeBlogImage(index)}
+                                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
                             </div>
                           )}
 
-                          {editingBlogPost?.featured_image_url && !selectedBlogImage && (
+                          {editingBlogPost?.image_urls && editingBlogPost.image_urls.length > 0 && (
                             <div className="space-y-2">
-                              <Label className="text-sm text-muted-foreground">Image actuelle:</Label>
-                              <div className="relative">
-                                <img 
-                                  src={editingBlogPost.featured_image_url} 
-                                  alt="Image actuelle"
-                                  className="w-full h-32 object-cover rounded-md"
-                                />
+                              <Label className="text-sm text-muted-foreground">Images existantes:</Label>
+                              <div className="grid grid-cols-2 gap-2">
+                                {editingBlogPost.image_urls.map((url, index) => (
+                                  <div key={index} className="relative">
+                                    <img 
+                                      src={url} 
+                                      alt={`Blog ${index + 1}`}
+                                      className="w-full h-20 object-cover rounded-md"
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {blogFormData.image_urls.length > 0 && (
+                            <div className="space-y-2">
+                              <Label className="text-sm text-muted-foreground">URLs d'images:</Label>
+                              <div className="space-y-2">
+                                {blogFormData.image_urls.map((url, index) => (
+                                  <div key={index} className="flex items-center gap-2">
+                                    <Input
+                                      value={url}
+                                      onChange={(e) => {
+                                        const newUrls = [...blogFormData.image_urls];
+                                        newUrls[index] = e.target.value;
+                                        setBlogFormData(prev => ({ ...prev, image_urls: newUrls }));
+                                      }}
+                                      placeholder="https://exemple.com/image.jpg"
+                                    />
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => removeImageUrl(index)}
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                ))}
                               </div>
                             </div>
                           )}
 
                           <div className="space-y-2">
-                            <Label htmlFor="blogImageUrl">Ou URL de l'image</Label>
-                            <Input
-                              id="blogImageUrl"
-                              value={blogFormData.featured_image_url}
-                              onChange={(e) => setBlogFormData({ ...blogFormData, featured_image_url: e.target.value })}
-                              placeholder="https://exemple.com/image.jpg"
-                            />
+                            <Label htmlFor="blogImageUrl">Ajouter URL d'image</Label>
+                            <div className="flex gap-2">
+                              <Input
+                                id="blogImageUrl"
+                                placeholder="https://exemple.com/image.jpg"
+                                onKeyPress={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    const input = e.target as HTMLInputElement;
+                                    addImageUrl(input.value);
+                                    input.value = '';
+                                  }
+                                }}
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={(e) => {
+                                  const input = document.getElementById('blogImageUrl') as HTMLInputElement;
+                                  addImageUrl(input.value);
+                                  input.value = '';
+                                }}
+                              >
+                                Ajouter
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>

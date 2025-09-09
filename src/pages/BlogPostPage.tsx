@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
-import { Calendar, ArrowLeft, ZoomIn } from "lucide-react";
+import { Calendar, ArrowLeft, ZoomIn, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
@@ -14,7 +14,7 @@ interface BlogPost {
   excerpt?: string;
   author_name: string;
   slug: string;
-  featured_image_url?: string;
+  image_urls?: string[];
   is_published: boolean;
   created_at: string;
   updated_at: string;
@@ -25,7 +25,20 @@ export default function BlogPostPage() {
   const [post, setPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { toast } = useToast();
+
+  const nextImage = () => {
+    if (post?.image_urls) {
+      setCurrentImageIndex((prev) => (prev + 1) % post.image_urls!.length);
+    }
+  };
+
+  const prevImage = () => {
+    if (post?.image_urls) {
+      setCurrentImageIndex((prev) => (prev - 1 + post.image_urls!.length) % post.image_urls!.length);
+    }
+  };
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -131,7 +144,7 @@ export default function BlogPostPage() {
       <meta name="description" content={post.excerpt || post.content.substring(0, 160)} />
       <meta property="og:title" content={post.title} />
       <meta property="og:description" content={post.excerpt || post.content.substring(0, 160)} />
-      {post.featured_image_url && <meta property="og:image" content={post.featured_image_url} />}
+      {post.image_urls && post.image_urls.length > 0 && <meta property="og:image" content={post.image_urls[0]} />}
       <meta property="og:type" content="article" />
       
       <div className="min-h-screen bg-background">
@@ -168,14 +181,14 @@ export default function BlogPostPage() {
             )}
           </header>
 
-          {/* Featured Image */}
-          {post.featured_image_url && (
+          {/* Featured Images */}
+          {post.image_urls && post.image_urls.length > 0 && (
             <div className="mb-8">
               <Dialog>
                 <DialogTrigger asChild>
                   <div className="relative group cursor-pointer">
                     <img
-                      src={post.featured_image_url}
+                      src={post.image_urls[0]}
                       alt={post.title}
                       className="w-full h-64 sm:h-80 lg:h-96 object-cover rounded-lg shadow-elegant"
                     />
@@ -184,14 +197,44 @@ export default function BlogPostPage() {
                         <ZoomIn className="h-6 w-6 text-foreground" />
                       </div>
                     </div>
+                    {post.image_urls.length > 1 && (
+                      <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
+                        +{post.image_urls.length - 1} image{post.image_urls.length > 2 ? 's' : ''}
+                      </div>
+                    )}
                   </div>
                 </DialogTrigger>
                 <DialogContent className="max-w-4xl max-h-[90vh] p-0">
-                  <img
-                    src={post.featured_image_url}
-                    alt={post.title}
-                    className="w-full h-full object-contain"
-                  />
+                  <div className="relative">
+                    <img
+                      src={post.image_urls[currentImageIndex]}
+                      alt={post.title}
+                      className="w-full h-full object-contain"
+                    />
+                    {post.image_urls.length > 1 && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white"
+                          onClick={prevImage}
+                        >
+                          <ChevronLeft className="h-6 w-6" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white"
+                          onClick={nextImage}
+                        >
+                          <ChevronRight className="h-6 w-6" />
+                        </Button>
+                        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+                          {currentImageIndex + 1} / {post.image_urls.length}
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </DialogContent>
               </Dialog>
             </div>

@@ -20,8 +20,8 @@ export type Database = {
           content: string
           created_at: string
           excerpt: string | null
-          featured_image_url: string | null
           id: string
+          image_urls: string[] | null
           is_published: boolean | null
           slug: string
           title: string
@@ -32,8 +32,8 @@ export type Database = {
           content: string
           created_at?: string
           excerpt?: string | null
-          featured_image_url?: string | null
           id?: string
+          image_urls?: string[] | null
           is_published?: boolean | null
           slug: string
           title: string
@@ -44,8 +44,8 @@ export type Database = {
           content?: string
           created_at?: string
           excerpt?: string | null
-          featured_image_url?: string | null
           id?: string
+          image_urls?: string[] | null
           is_published?: boolean | null
           slug?: string
           title?: string
