@@ -20,7 +20,7 @@ export default function Navigation() {
               alt="FA.LI Logo" 
               className="h-8 w-8 object-contain"
             />
-            <span className="font-display text-xl font-bold">FA.LI</span>
+            <span className="font-display text-xl font-bold" style={{ color: '#895429' }}>FA.LI</span>
           </Link>
 
           {/* Desktop Navigation */}
