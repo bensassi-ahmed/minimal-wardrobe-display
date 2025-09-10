@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { ShoppingBag, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
@@ -15,8 +15,12 @@ export default function Navigation() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <ShoppingBag className="h-6 w-6" />
-            <span className="font-display text-xl font-bold">Atelier</span>
+            <img 
+              src="/lovable-uploads/580f8fa1-d73b-4b18-8fb0-225a5fa2c807.png" 
+              alt="FA.LI Logo" 
+              className="h-8 w-8 object-contain"
+            />
+            <span className="font-display text-xl font-bold">FA.LI</span>
           </Link>
 
           {/* Desktop Navigation */}
