@@ -42,20 +42,20 @@ export default function Navigation() {
               Catalogue
             </Link>
             <Link
-              to="/contact"
-              className={`text-sm font-medium transition-colors hover:text-primary ${
-                isActive("/contact") ? "text-primary" : "text-muted-foreground"
-              }`}
-            >
-              Contact
-            </Link>
-            <Link
               to="/participation"
               className={`text-sm font-medium transition-colors hover:text-primary ${
                 isActive("/participation") ? "text-primary" : "text-muted-foreground"
               }`}
             >
               Participation
+            </Link>
+            <Link
+              to="/contact"
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                isActive("/contact") ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              Contact
             </Link>
           </div>
 
@@ -91,18 +91,18 @@ export default function Navigation() {
                 Catalogue
               </Link>
               <Link
-                to="/contact"
-                className="text-sm font-medium text-muted-foreground hover:text-primary"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Contact
-              </Link>
-              <Link
                 to="/participation"
                 className="text-sm font-medium text-muted-foreground hover:text-primary"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Participation
+              </Link>
+              <Link
+                to="/contact"
+                className="text-sm font-medium text-muted-foreground hover:text-primary"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Contact
               </Link>
             </div>
           </div>
