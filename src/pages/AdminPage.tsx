@@ -1018,15 +1018,39 @@ const AdminPage = () => {
                               <Label className="text-sm text-muted-foreground">Selected Images:</Label>
                               <div className="grid grid-cols-2 gap-2">
                                 {selectedImages.map((file, index) => (
-                                  <div key={index} className="relative group">
+                                  <div 
+                                    key={index} 
+                                    className="relative group cursor-move"
+                                    draggable
+                                    onDragStart={(e) => {
+                                      e.dataTransfer.effectAllowed = 'move';
+                                      e.dataTransfer.setData('text/html', index.toString());
+                                      e.dataTransfer.setData('imageType', 'selected');
+                                    }}
+                                    onDragOver={(e) => {
+                                      e.preventDefault();
+                                      e.dataTransfer.dropEffect = 'move';
+                                    }}
+                                    onDrop={(e) => {
+                                      e.preventDefault();
+                                      const draggedType = e.dataTransfer.getData('imageType');
+                                      if (draggedType === 'selected') {
+                                        const fromIndex = parseInt(e.dataTransfer.getData('text/html'));
+                                        moveProductImage(fromIndex, index);
+                                      }
+                                    }}
+                                  >
                                     <div className="flex items-center justify-between p-2 bg-muted rounded-md">
-                                      <span className="text-sm truncate">{file.name}</span>
+                                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                                        <GripVertical className="h-4 w-4 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        <span className="text-sm truncate">{file.name}</span>
+                                      </div>
                                       <Button
                                         type="button"
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => removeImage(index)}
-                                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        className="h-6 w-6 p-0 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
                                       >
                                         <X className="h-4 w-4" />
                                       </Button>
@@ -1042,12 +1066,45 @@ const AdminPage = () => {
                               <Label className="text-sm text-muted-foreground">Existing Images:</Label>
                               <div className="grid grid-cols-2 gap-2">
                                 {editingProduct.image_urls.map((url, index) => (
-                                  <div key={index} className="relative">
+                                  <div 
+                                    key={index} 
+                                    className="relative group cursor-move"
+                                    draggable
+                                    onDragStart={(e) => {
+                                      e.dataTransfer.effectAllowed = 'move';
+                                      e.dataTransfer.setData('text/html', index.toString());
+                                      e.dataTransfer.setData('imageType', 'existing');
+                                    }}
+                                    onDragOver={(e) => {
+                                      e.preventDefault();
+                                      e.dataTransfer.dropEffect = 'move';
+                                    }}
+                                    onDrop={(e) => {
+                                      e.preventDefault();
+                                      const draggedType = e.dataTransfer.getData('imageType');
+                                      if (draggedType === 'existing') {
+                                        const fromIndex = parseInt(e.dataTransfer.getData('text/html'));
+                                        moveExistingProductImage(fromIndex, index);
+                                      }
+                                    }}
+                                  >
+                                    <div className="absolute top-1 left-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <GripVertical className="h-4 w-4 text-white drop-shadow-lg" />
+                                    </div>
                                     <img 
                                       src={url} 
                                       alt={`Product ${index + 1}`}
                                       className="w-full h-20 object-cover rounded-md"
                                     />
+                                    <Button
+                                      type="button"
+                                      variant="destructive"
+                                      size="sm"
+                                      onClick={() => removeExistingProductImage(index)}
+                                      className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
                                   </div>
                                 ))}
                               </div>
