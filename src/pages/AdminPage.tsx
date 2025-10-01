@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Plus, Edit, Trash2, Upload, X, LogOut } from "lucide-react";
+import { Loader2, Plus, Edit, Trash2, Upload, X, LogOut, GripVertical } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import ProductCard from "@/components/ProductCard";
 
@@ -480,6 +480,40 @@ const AdminPage = () => {
     }));
   };
 
+  const removeExistingBlogImage = (index: number) => {
+    if (editingBlogPost) {
+      const updatedUrls = editingBlogPost.image_urls?.filter((_, i) => i !== index) || [];
+      setEditingBlogPost({ ...editingBlogPost, image_urls: updatedUrls });
+    }
+  };
+
+  const moveExistingBlogImage = (fromIndex: number, toIndex: number) => {
+    if (editingBlogPost && editingBlogPost.image_urls) {
+      const updatedUrls = [...editingBlogPost.image_urls];
+      const [movedItem] = updatedUrls.splice(fromIndex, 1);
+      updatedUrls.splice(toIndex, 0, movedItem);
+      setEditingBlogPost({ ...editingBlogPost, image_urls: updatedUrls });
+    }
+  };
+
+  const moveImageUrl = (fromIndex: number, toIndex: number) => {
+    setBlogFormData(prev => {
+      const updatedUrls = [...prev.image_urls];
+      const [movedItem] = updatedUrls.splice(fromIndex, 1);
+      updatedUrls.splice(toIndex, 0, movedItem);
+      return { ...prev, image_urls: updatedUrls };
+    });
+  };
+
+  const moveBlogImage = (fromIndex: number, toIndex: number) => {
+    setSelectedBlogImages(prev => {
+      const updatedImages = [...prev];
+      const [movedItem] = updatedImages.splice(fromIndex, 1);
+      updatedImages.splice(toIndex, 0, movedItem);
+      return updatedImages;
+    });
+  };
+
   const handleBlogEdit = (blogPost: BlogPost) => {
     setBlogFormData({
       title: blogPost.title,
@@ -510,7 +544,10 @@ const AdminPage = () => {
       
       // Upload new images if selected
       const uploadedImageUrls = await uploadBlogImages();
-      const imageUrls = [...blogFormData.image_urls, ...uploadedImageUrls];
+      
+      // Combine existing images (from editingBlogPost after user modifications) with URL images and newly uploaded images
+      const existingImageUrls = editingBlogPost?.image_urls || [];
+      const imageUrls = [...existingImageUrls, ...blogFormData.image_urls, ...uploadedImageUrls];
       
       const blogData = {
         title: blogFormData.title,
@@ -1131,15 +1168,39 @@ const AdminPage = () => {
                               <Label className="text-sm text-muted-foreground">Images sélectionnées:</Label>
                               <div className="grid grid-cols-2 gap-2">
                                 {selectedBlogImages.map((file, index) => (
-                                  <div key={index} className="relative group">
+                                  <div 
+                                    key={index} 
+                                    className="relative group cursor-move"
+                                    draggable
+                                    onDragStart={(e) => {
+                                      e.dataTransfer.effectAllowed = 'move';
+                                      e.dataTransfer.setData('text/html', index.toString());
+                                      e.dataTransfer.setData('imageType', 'selected');
+                                    }}
+                                    onDragOver={(e) => {
+                                      e.preventDefault();
+                                      e.dataTransfer.dropEffect = 'move';
+                                    }}
+                                    onDrop={(e) => {
+                                      e.preventDefault();
+                                      const draggedType = e.dataTransfer.getData('imageType');
+                                      if (draggedType === 'selected') {
+                                        const fromIndex = parseInt(e.dataTransfer.getData('text/html'));
+                                        moveBlogImage(fromIndex, index);
+                                      }
+                                    }}
+                                  >
                                     <div className="flex items-center justify-between p-2 bg-muted rounded-md">
-                                      <span className="text-sm truncate">{file.name}</span>
+                                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                                        <GripVertical className="h-4 w-4 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        <span className="text-sm truncate">{file.name}</span>
+                                      </div>
                                       <Button
                                         type="button"
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => removeBlogImage(index)}
-                                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        className="h-6 w-6 p-0 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
                                       >
                                         <X className="h-4 w-4" />
                                       </Button>
@@ -1155,12 +1216,45 @@ const AdminPage = () => {
                               <Label className="text-sm text-muted-foreground">Images existantes:</Label>
                               <div className="grid grid-cols-2 gap-2">
                                 {editingBlogPost.image_urls.map((url, index) => (
-                                  <div key={index} className="relative">
+                                  <div 
+                                    key={index} 
+                                    className="relative group cursor-move"
+                                    draggable
+                                    onDragStart={(e) => {
+                                      e.dataTransfer.effectAllowed = 'move';
+                                      e.dataTransfer.setData('text/html', index.toString());
+                                      e.dataTransfer.setData('imageType', 'existing');
+                                    }}
+                                    onDragOver={(e) => {
+                                      e.preventDefault();
+                                      e.dataTransfer.dropEffect = 'move';
+                                    }}
+                                    onDrop={(e) => {
+                                      e.preventDefault();
+                                      const draggedType = e.dataTransfer.getData('imageType');
+                                      if (draggedType === 'existing') {
+                                        const fromIndex = parseInt(e.dataTransfer.getData('text/html'));
+                                        moveExistingBlogImage(fromIndex, index);
+                                      }
+                                    }}
+                                  >
+                                    <div className="absolute top-1 left-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <GripVertical className="h-4 w-4 text-white drop-shadow-lg" />
+                                    </div>
                                     <img 
                                       src={url} 
                                       alt={`Blog ${index + 1}`}
                                       className="w-full h-20 object-cover rounded-md"
                                     />
+                                    <Button
+                                      type="button"
+                                      variant="destructive"
+                                      size="sm"
+                                      onClick={() => removeExistingBlogImage(index)}
+                                      className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
                                   </div>
                                 ))}
                               </div>
@@ -1172,7 +1266,29 @@ const AdminPage = () => {
                               <Label className="text-sm text-muted-foreground">URLs d'images:</Label>
                               <div className="space-y-2">
                                 {blogFormData.image_urls.map((url, index) => (
-                                  <div key={index} className="flex items-center gap-2">
+                                  <div 
+                                    key={index} 
+                                    className="flex items-center gap-2 group cursor-move"
+                                    draggable
+                                    onDragStart={(e) => {
+                                      e.dataTransfer.effectAllowed = 'move';
+                                      e.dataTransfer.setData('text/html', index.toString());
+                                      e.dataTransfer.setData('imageType', 'url');
+                                    }}
+                                    onDragOver={(e) => {
+                                      e.preventDefault();
+                                      e.dataTransfer.dropEffect = 'move';
+                                    }}
+                                    onDrop={(e) => {
+                                      e.preventDefault();
+                                      const draggedType = e.dataTransfer.getData('imageType');
+                                      if (draggedType === 'url') {
+                                        const fromIndex = parseInt(e.dataTransfer.getData('text/html'));
+                                        moveImageUrl(fromIndex, index);
+                                      }
+                                    }}
+                                  >
+                                    <GripVertical className="h-4 w-4 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                                     <Input
                                       value={url}
                                       onChange={(e) => {
